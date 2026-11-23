@@ -26,3 +26,7 @@
 - 對照 [Dual-Tier 原文圖 1](https://arxiv.org/pdf/2611.27899#page=2)，修正第 3 頁「先篩查，再診斷」的表述，補上兩層並行及上線雙條件。同步更新[論文筆記](papers/ding-2026-dual-tier-sentiment.md)。
 - 核對 [MetaRigor 表 2](https://arxiv.org/pdf/2611.27713#page=9)與[表 20](https://arxiv.org/pdf/2611.27713#page=25)，逐一確認第 4 頁的 F1 指標、案例範圍與比較基準。
 - 以 Chrome 檢查[六頁 HTML 簡報](../asset/llm-use-cases.html)。1366 × 768 與 390 × 844 下，翻頁按鈕、方向鍵、Home、End 和頁碼邊界測試均通過。調整投影版面的標題字級及上下留白後，兩種尺寸逐頁確認內容能完整顯示。
+
+## [2026-11-23] save | 五篇論文綜述
+
+新增[AI 工作流程的設計與驗證](topics/ai-workflow-evidence.md)，比較五篇論文的任務定義、元件分工與驗證方式。保留各篇結果的評估範圍與原文定位，並在索引和繳交說明加入綜述連結。

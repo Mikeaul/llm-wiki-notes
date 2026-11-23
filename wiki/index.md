@@ -1,5 +1,9 @@
 # 論文 Wiki 索引
 
+## 主題綜述
+
+- [AI 工作流程的設計與驗證](topics/ai-workflow-evidence.md) — 整合五篇論文，比較任務定義、元件分工、單步驗證與下游決策。
+
 ## 論文
 
 1. [The Geometry of Lies: Knowledge and Persona Directions for Detecting Deception in Large Language Models](papers/al-zami-2026-geometry-of-lies.md) — 用回答措辭控制檢查 LLM 欺騙偵測訊號，並比較排序指標和固定門檻的檢出表現。

@@ -6,6 +6,7 @@
 
 ## 2. LLM Wiki 成果
 
+- [五篇論文綜述：AI 工作流程的設計與驗證](wiki/topics/ai-workflow-evidence.md)比較任務定義、系統分工與輸出驗證，並列出各研究的證據及適用條件。
 - [論文索引](wiki/index.md)連到五篇論文筆記，按原始閱讀順序排列。
 - [工作日誌](wiki/log.md)記錄匯入與檢查。[AGENTS.md](AGENTS.md)說明原始資料、筆記、索引和日誌的維護方式。
 - 論文筆記附 arXiv 來源。本機原始 PDF 保存在 `raw/`。
