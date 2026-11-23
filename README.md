@@ -13,12 +13,16 @@
 
 ## 3. 教學 HTML 簡報
 
-[線上播放《LLM 的運用方式》](https://mikeaul.github.io/llm-wiki-notes/asset/llm-use-cases.html)，共六頁。從 LLM 在工作中負責的任務講起，用搜尋體驗評估與後設分析兩個案例，帶讀者辨認模型輸入、輸出和查證方式。最後用一個有多個時間點的研究結果示範如何核對擷取內容。[HTML 原始檔](asset/llm-use-cases.html)
+[線上播放《LLM 的運用方式》Graph 版](https://mikeaul.github.io/llm-wiki-notes/asset/llm-workflow-graph.html)，共 15 頁。從一筆待查證的論文數字出發，用流程總圖、搜尋評估的並行圖、後設分析的核對圖，說明 LLM 如何參與工作及何時需要退回重查。結尾有一題查證練習與五篇論文的閱讀入口。[Graph 版 HTML 原始檔](asset/llm-workflow-graph.html)
 
 | 簡報 | Wiki 依據 |
 | --- | --- |
-| 第 3 頁，搜尋體驗評估 | [Dual-Tier Sentiment Framework](wiki/papers/ding-2026-dual-tier-sentiment.md)，原文摘要與圖 1。 |
-| 第 4、6 頁，後設分析和應用示例 | [MetaRigor](wiki/papers/xie-2026-metarigor.md)，原文表 2、表 20，以及結果識別與來源綁定設計。第 6 頁是教學示例。 |
+| 第 4、12–13 頁，流程與檢查 | [五篇論文綜述](wiki/topics/ai-workflow-evidence.md)及 [Wiki 健檢紀錄](wiki/log.md)。 |
+| 第 7 頁，搜尋體驗評估 | [Dual-Tier](wiki/papers/ding-2026-dual-tier-sentiment.md)，原文圖 1。 |
+| 第 8、14 頁，證據擷取與查證練習 | [MetaRigor](wiki/papers/xie-2026-metarigor.md)的任務契約與來源綁定。第 14 頁的數值為教學假例。 |
+| 第 9–11 頁，任務規則、共享與門檻 | [SLICR](wiki/papers/rafieioskouie-2026-slicr.md)、[HNFL](wiki/papers/nguyen-2026-hnfl.md)與 [The Geometry of Lies](wiki/papers/al-zami-2026-geometry-of-lies.md)。 |
+
+[六頁初版](https://mikeaul.github.io/llm-wiki-notes/asset/llm-use-cases.html)
 
 ## 4. Loop / Graph 流程
 

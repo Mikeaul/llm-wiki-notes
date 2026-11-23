@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LLM 的運用方式｜從 Wiki 到可查證的簡報</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f7f6f0;
+      --white: #fff;
+      --ink: #142632;
+      --muted: #415765;
+      --teal: #005d56;
+      --mint: #dceee7;
+      --amber: #8d3f1b;
+      --peach: #f8e8da;
+      --line: #a8b9bd;
+      --nav: #101f29;
+      --bar: 60px;
+      font-family: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", system-ui, sans-serif;
+      font-synthesis: none;
+    }
+    * { box-sizing: border-box }
+    body { margin: 0; background: var(--paper); color: var(--ink) }
+    [hidden] { display: none !important }
+    a { color: var(--teal); text-underline-offset: .18em }
+    :focus-visible { outline: 3px solid #ca651c; outline-offset: 4px }
+    .slide { min-height: calc(100svh - var(--bar)); padding: clamp(24px,5.4vh,64px) clamp(21px,6vw,96px); background: var(--paper) }
+    .sheet { max-width: 1100px; margin-inline: auto }
+    .cover, .contrast { background: var(--ink); color: var(--white) }
+    .cover { display: grid; align-content: center }
+    .cover .sheet { width: 100% }
+    .cover a, .contrast a { color: #c4eee1 }
+    .phase { margin: 0 0 10px; color: var(--teal); font-size: 15px; font-weight: 800; letter-spacing: .07em }
+    .cover .phase, .contrast .phase { color: #b6e3d5 }
+    h1, h2, h3, p { margin-top: 0 }
+    h1, h2 { line-height: 1.12; letter-spacing: -.045em; text-wrap: balance }
+    h1 { margin-bottom: .22em; font-size: clamp(43px,min(9.6vw,12vh),112px) }
+    h2 { margin-bottom: .42em; font-size: clamp(32px,min(5.2vw,7.7vh),65px) }
+    h3 { margin-bottom: .3em; line-height: 1.25; font-size: clamp(20px,2.35vw,30px) }
+    p, li, td, th { line-height: 1.56; font-size: clamp(16px,1.96vw,25px) }
+    .lead { max-width: 44em; margin-bottom: clamp(14px,3vh,27px); color: var(--muted); font-size: clamp(18px,2.2vw,30px) }
+    .cover .lead, .contrast .lead { color: #d8e8ea }
+    .source { margin: 18px 0 0; color: var(--muted); font-size: clamp(13px,1.3vw,16px); line-height: 1.6 }
+    .contrast .source { color: #d1e0e4 }
+    .callout { margin: clamp(14px,2.5vh,24px) 0 0; padding: 10px 16px; border-left: 4px solid var(--teal); background: var(--mint) }
+    .callout p { margin: 0; font-size: clamp(15px,1.78vw,22px) }
+    .callout.warn { border-color: var(--amber); background: var(--peach) }
+    .columns { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(20px,4.5vw,62px); align-items: center }
+    .stack { margin: 0; padding: 0; list-style: none }
+    .stack li { border-top: 1px solid var(--line); padding: .42em 0 }
+    .record { margin: 0; border: 1px solid var(--line); background: var(--white) }
+    .record div { display: grid; grid-template-columns: 1fr 2.4fr; padding: .52em .85em; gap: 10px; font-size: clamp(16px,2vw,24px); line-height: 1.45 }
+    .record div + div { border-top: 1px solid #dce4e3 }
+    .record dt { color: var(--teal); font-weight: 750 }
+    .record dd { margin: 0 }
+    .big-number { color: var(--teal); font-size: clamp(66px,13vw,158px); font-weight: 850; letter-spacing: -.09em; line-height: 1; margin: 0 0 10px }
+    .big-number small { font-size: .45em; letter-spacing: -.05em }
+    .plain { margin-bottom: 0 }
+    .flow { --gap: clamp(19px,3vw,37px); display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0,1fr); gap: var(--gap); padding: 0; margin: 0; list-style: none }
+    .flow li, .node { position: relative; padding: clamp(9px,1.4vw,17px); text-align: center; border: 1px solid var(--line); background: var(--white) }
+    .flow li > strong, .node > strong { display: block; color: var(--teal); font-size: clamp(16px,1.85vw,24px); line-height: 1.3 }
+    .flow li > span, .node > span { display: block; margin-top: .3em; color: var(--muted); font-size: clamp(14px,1.5vw,19px); line-height: 1.4 }
+    .flow li:not(:last-child)::after { content: "→" / ""; position: absolute; display: grid; place-items: center; inset-inline-start: 100%; top: 0; width: var(--gap); height: 100%; color: var(--teal); font-size: clamp(18px,2vw,26px); line-height: 1 }
+    .flow.shared li:nth-child(2)::after { content: "←" / "" }
+    .flow .gate, .node.gate { background: var(--mint); border-color: #739c94 }
+    .cover .flow { max-width: 850px; margin-top: clamp(23px,5vh,60px) }
+    .cover .flow li { background: #203a48; border-color: #527783 }
+    .cover .flow strong, .cover .flow li:not(:last-child)::after { color: #bde8db }
+    .cover .flow span { color: #e3eff0 }
+    figure { margin: 0 }
+    figcaption { margin-top: 12px; color: var(--muted); font-size: clamp(14px,1.45vw,18px); line-height: 1.5 }
+    .returns { margin: clamp(13px,2.6vh,25px) 0 0; display: grid; gap: 9px }
+    .returns p { margin: 0; padding: 9px 13px; border: 1px dashed #9a765e; background: var(--peach); color: #632f1c; font-size: clamp(15px,1.68vw,21px) }
+    .returns p strong { margin-right: .45em }
+    .back-path { display: block; width: 100%; height: clamp(22px,4.3vh,36px); color: var(--amber) }
+    .back-path path { fill: none; stroke: currentColor; stroke-width: 1.6; vector-effect: non-scaling-stroke }
+    .back-path .loop-line { stroke-dasharray: 6 4 }
+    .back-path + .returns { margin-top: 4px }
+    .fork { max-width: 980px; margin: 0 auto }
+    .fork .top { max-width: 270px; margin: 0 auto }
+    .fork .bottom { max-width: 540px; margin: 0 auto }
+    .fork .rails { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: clamp(11px,4vw,44px) }
+    .fork .branch-arrow { display: block; width: 100%; height: clamp(22px,4.9vh,43px); color: var(--teal) }
+    .fork .branch-arrow path { fill: none; stroke: currentColor; stroke-width: 1.7; vector-effect: non-scaling-stroke }
+    .case-grid { display: grid; gap: clamp(11px,2vh,18px); grid-template-columns: repeat(2,minmax(0,1fr)); align-items: stretch }
+    .case-grid article { border-top: 3px solid var(--teal); padding-top: 12px }
+    .contrast .case-grid article { border-color: #b6e3d5 }
+    .case-grid p { margin-bottom: 0 }
+    .pair-values { gap: 24px }
+    .value { margin: 0 0 7px; color: #c9ebdb; font-size: clamp(44px,8vw,110px); font-weight: 850; line-height: 1; letter-spacing: -.07em }
+    .value small { font-size: .46em; letter-spacing: -.03em }
+    .pair-values .label { color: #e3eff0 }
+    table { width: 100%; border-collapse: collapse; text-align: left; table-layout: fixed }
+    th, td { border-bottom: 1px solid var(--line); padding: .45em .55em; vertical-align: top; overflow-wrap: anywhere; font-size: clamp(14px,1.66vw,21px) }
+    th { color: var(--teal) }
+    thead th { border-bottom: 2px solid var(--teal) }
+    .assessment th:first-child { width: 24% }
+    .papers th:first-child { width: 35% }
+    .papers a { font-weight: 750 }
+    details { margin-top: 17px; border: 1px solid #739c94; background: var(--mint); padding: 10px 14px }
+    details summary { cursor: pointer; color: var(--teal); font-size: clamp(16px,1.8vw,22px); font-weight: 800 }
+    details p { font-size: clamp(15px,1.73vw,21px); margin: 10px 0 0 }
+    .player { position: sticky; bottom: 0; z-index: 2; min-height: var(--bar); display: flex; align-items: center; justify-content: center; gap: clamp(14px,3vw,32px); padding: 8px 16px; background: var(--nav); color: var(--white) }
+    .player output { min-width: 5ch; text-align: center; font-variant-numeric: tabular-nums }
+    .player button { min-height: 40px; min-width: 88px; border: 1px solid #778e95; border-radius: 4px; padding: 6px 12px; background: transparent; color: var(--white); font: inherit; cursor: pointer }
+    .player button:not(:disabled):hover { background: #2e4c56 }
+    .player button:disabled { opacity: .46; cursor: default }
+    .player progress { position: absolute; left: 0; right: 0; top: 0; width: 100%; height: 3px; border: 0; appearance: none; pointer-events: none }
+    .player progress::-webkit-progress-bar { background: #2f454c }
+    .player progress::-webkit-progress-value { background: #93dbbf }
+    .player progress::-moz-progress-bar { background: #93dbbf }
+    @media (max-width: 700px) {
+      .columns { grid-template-columns: 1fr; gap: 16px }
+      .flow { grid-auto-flow: row; grid-auto-columns: auto; gap: 17px }
+      .flow li:not(:last-child)::after { content: "↓" / ""; inset-inline-start: 0; top: 100%; width: 100%; height: 17px; font-size: 17px }
+      .flow.shared li:nth-child(2)::after { content: "↑" / "" }
+      .flow li > span, .node > span { margin-top: 3px }
+      .cover .flow { max-width: 340px; margin-top: 24px }
+      .case-grid { gap: 16px }
+      .pair-values .label { font-size: 15px }
+      .fork .branch-arrow { height: 28px }
+      .back-path { display: none }
+      .back-path + .returns { margin-top: 14px; gap: 6px }
+      .overview .source { margin-top: 10px }
+    }
+    @media (max-width: 480px) {
+      .case-grid:not(.pair-values) { grid-template-columns: 1fr }
+      .record div { grid-template-columns: 1fr 2fr }
+      .flow li { padding-block: 6px }
+      .papers th:first-child { width: 38% }
+    }
+    @page { size: A4 landscape; margin: 0 }
+    @media print {
+      .player { display: none !important }
+      .slide, .slide[hidden] { display: block !important; height: 210mm; min-height: 0; padding: 13mm 18mm; break-after: page; print-color-adjust: exact }
+      .slide:last-child { break-after: auto }
+      h1 { font-size: 62pt }
+      h2 { font-size: 34pt }
+      p, li { font-size: 15pt }
+    }
+  </style>
+</head>
+<body>
+  <main id="deck">
+    <section class="slide cover">
+      <div class="sheet">
+        <p class="phase">從論文 Wiki 到可查證的簡報</p>
+        <h1>LLM 的運用方式</h1>
+        <p class="lead">用五篇研究學會定義任務、分配工作，並查證 AI 的結果。</p>
+        <ol class="flow" aria-label="由左到右讀取流程">
+          <li><strong>取得資料</strong><span>找到可回查的來源</span></li>
+          <li><strong>整理證據</strong><span>用 Wiki 組織論點</span></li>
+          <li><strong>核對關係</strong><span>查證結果與箭頭</span></li>
+          <li><strong>產生簡報</strong><span>把證據變成教學內容</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="sheet">
+        <p class="phase">開場練習</p>
+        <h2>AI 找到「72%」，可以直接引用嗎？</h2>
+        <div class="columns">
+          <div>
+            <p class="big-number">72<small>%</small></p>
+            <p class="lead plain">想像你請模型從一篇研究擷取第 12 週的完成率。它回傳了一個數字。</p>
+          </div>
+          <div>
+            <h3>採用前先回答三個問題</h3>
+            <ul class="stack">
+              <li>是哪個研究組別的結果？</li>
+              <li>是在第幾週量到的？</li>
+              <li>原文的哪一頁、哪一張表？</li>
+            </ul>
+          </div>
+        </div>
+        <p class="source">72% 為教學假例。本例改寫自 <a href="../wiki/papers/xie-2026-metarigor.md">MetaRigor 的結果識別問題</a>。</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="sheet">
+        <p class="phase">基礎概念</p>
+        <h2>LLM、Wiki 與原始資料各負責什麼？</h2>
+        <dl class="record">
+          <div><dt>LLM</dt><dd>大型語言模型。可以讀文字、找出候選答案並組織說明。</dd></div>
+          <div><dt>Wiki</dt><dd>持續更新的知識庫。把每篇論文整理成有互相連結、附來源的筆記。</dd></div>
+          <div><dt>原始資料</dt><dd>判斷能否採用結果的依據，例如論文正文、圖表和補充資料。</dd></div>
+        </dl>
+        <div class="callout"><p>用 Wiki 縮小查找範圍，再用原文確認投影片上的關鍵主張。</p></div>
+        <p class="source"><a href="../wiki/index.md">論文 Wiki 索引</a> · <a href="../wiki/topics/ai-workflow-evidence.md">五篇論文綜述</a></p>
+      </div>
+    </section>
+
+    <section class="slide overview">
+      <div class="sheet">
+        <p class="phase">Loop / Graph 總覽</p>
+        <h2>從取得資料到產生簡報</h2>
+        <figure>
+          <ol class="flow" aria-label="簡報製作流程的五個步驟">
+            <li><strong>取得資料</strong><span>確認論文與版本</span></li>
+            <li><strong>查詢 Wiki</strong><span>找筆記和原文定位</span></li>
+            <li><strong>整理重點</strong><span>做大綱與關係圖</span></li>
+            <li class="gate"><strong>檢查內容</strong><span>核對主張與箭頭</span></li>
+            <li><strong>產生簡報</strong><span>逐頁設計、實作與驗收</span></li>
+          </ol>
+          <svg class="back-path" viewBox="0 0 1000 40" preserveAspectRatio="none" aria-hidden="true">
+            <path class="loop-line" d="M707 1 V32 H293 V5"/>
+            <path d="M289 11 L293 5 L297 11"/>
+          </svg>
+          <div class="returns">
+            <p><strong>↶ 檢查內容 → 查詢 Wiki</strong> 證據不足或箭頭有誤，回到筆記與原文，再整理大綱。</p>
+            <p><strong>↶ 簡報驗收 → 產生簡報</strong> 版面或操作有誤，修正受影響的頁面再重測。</p>
+          </div>
+          <figcaption>兩個確認點位於排版前。先確認大綱，再確認逐頁內容。每加入一篇論文，也會重跑一次匯入與索引檢查。</figcaption>
+        </figure>
+        <p class="source"><a href="../wiki/topics/ai-workflow-evidence.md">依 Wiki 綜述整理的教學流程</a></p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="sheet">
+        <p class="phase">取得資料與查詢 Wiki</p>
+        <h2>從索引一路查到原文</h2>
+        <ol class="flow" aria-label="資料查找從論文版本進入索引、筆記與原文">
+          <li><strong>來源版本</strong><span>確認收到哪版論文</span></li>
+          <li><strong>Wiki 索引</strong><span>定位相關研究</span></li>
+          <li><strong>論文筆記</strong><span>找結果、限制與定位</span></li>
+          <li class="gate"><strong>原文圖表</strong><span>核對投影片主張</span></li>
+        </ol>
+        <div class="callout"><p>例如，要確認兩層搜尋評估怎麼連，就從 Dual-Tier 筆記找到原文圖 1，核對兩路如何進入共同判定。</p></div>
+        <p class="source"><a href="../wiki/index.md">Wiki 索引</a> · <a href="../wiki/papers/ding-2026-dual-tier-sentiment.md">Dual-Tier 筆記</a> · <a href="https://arxiv.org/pdf/2611.27899#page=2">原文圖 1</a></p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="sheet">
+        <p class="phase">整理重點與大綱</p>
+        <h2>每個主張都要帶上依據</h2>
+        <dl class="record">
+          <div><dt>主張</dt><dd>兩層搜尋評估並行，結果用於共同判定。</dd></div>
+          <div><dt>原文定位</dt><dd>Dual-Tier 論文第 2 頁，圖 1。</dd></div>
+          <div><dt>適用範圍</dt><dd>這是該研究從搜尋使用者體驗角度設定的上線條件。</dd></div>
+          <div><dt>圖的畫法</dt><dd>同一場實驗分成兩路評估，最後匯合。</dd></div>
+        </dl>
+        <div class="callout"><p>確認大綱時，試著把每一條箭頭讀成一句話。箭頭的含義可以是先後、並行匯合或退回重查。</p></div>
+        <p class="source"><a href="../wiki/papers/ding-2026-dual-tier-sentiment.md">Wiki 筆記</a> · <a href="https://arxiv.org/pdf/2611.27899#page=2">原文圖 1</a></p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="sheet">
+        <p class="phase">案例一｜搜尋體驗評估</p>
+        <h2>兩路並行，共同判定</h2>
+        <figure class="fork" aria-label="同一搜尋實驗分為整頁篩查與局部診斷兩路，最後共同判定">
+          <div class="node top"><strong>同一場搜尋 A/B 實驗</strong></div>
+          <svg class="branch-arrow" viewBox="0 0 800 42" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M400 0 V15 H200 V38 M400 15 H600 V38 M195 32 L200 38 L205 32 M595 32 L600 38 L605 32"/>
+          </svg>
+          <div class="rails">
+            <div class="node"><strong>整頁篩查</strong><span>用遙測資料估計整體體驗是否退化。</span></div>
+            <div class="node"><strong>局部診斷</strong><span>看搜尋結果頁畫面，估計使用者的局部阻力。</span></div>
+          </div>
+          <svg class="branch-arrow" viewBox="0 0 800 42" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M200 0 V16 H600 V0 M400 16 V38 M395 32 L400 38 L405 32"/>
+          </svg>
+          <div class="node gate bottom"><strong>符合使用者體驗的上線條件</strong><span>整頁體驗未退化，且局部使用阻力有改善。</span></div>
+          <figcaption>A/B 實驗比較兩種版本。這裡兩路各自評估，而後用兩個結果共同判斷。</figcaption>
+        </figure>
+        <p class="source"><a href="../wiki/papers/ding-2026-dual-tier-sentiment.md">Dual-Tier 筆記</a> · <a href="https://arxiv.org/pdf/2611.27899#page=2">原文圖 1</a></p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="sheet">
+        <p class="phase">案例二｜後設分析</p>
+        <h2>結果擷取後，再核對研究條件</h2>
+        <p class="lead">後設分析會整理多篇研究的可比較結果。先確認每個數字所屬的研究、組別、指標與時間點。</p>
+        <ol class="flow" aria-label="由研究報告經模型擷取、程式核對到證據紀錄">
+          <li><strong>研究報告與規範</strong><span>指定要擷取的結果</span></li>
+          <li><strong>LLM 擷取</strong><span>找數字及其研究脈絡</span></li>
+          <li class="gate"><strong>程式核對</strong><span>檢查欄位、規則與出處</span></li>
+          <li><strong>證據紀錄</strong><span>保留數值和原文位置</span></li>
+        </ol>
+        <div class="returns"><p><strong>↶ 核對後退回擷取</strong> 時間點錯配或出處缺漏時，重新讀原文並更正候選結果。</p></div>
+        <p class="source">流程圖依 <a href="../wiki/papers/xie-2026-metarigor.md">MetaRigor 筆記</a> 簡化為教學示意。原文第 5–8 頁說明任務契約與來源綁定。</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="sheet">
+        <p class="phase">從五篇研究補上設計細節</p>
+        <h2>先把任務說清楚</h2>
+        <div class="case-grid">
+          <article>
+            <h3>SLICR 的行為規則</h3>
+            <p>在多代理強化學習中，研究者用形式規範描述代理應達成的目標與約束，並測試遇到未見對手策略時的表現。</p>
+          </article>
+          <article>
+            <h3>MetaRigor 的任務契約</h3>
+            <p>在研究資料擷取中，先規定可使用的事實、要回傳的欄位，以及哪些項目應交給程式核對。</p>
+          </article>
+        </div>
+        <div class="callout"><p>套用到 Wiki：指定要找的組別、指標、時間點，並要求每筆結果附上原文定位。</p></div>
+        <p class="source"><a href="../wiki/papers/rafieioskouie-2026-slicr.md">SLICR，§3–5</a> · <a href="../wiki/papers/xie-2026-metarigor.md">MetaRigor，PDF 第 5–8 頁</a></p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="sheet">
+        <p class="phase">從五篇研究補上設計細節</p>
+        <h2>決定各元件共享什麼</h2>
+        <p class="lead">HNFL 研究的是不同神經網路一起參與聯邦學習。各端參與共同訓練，同時保留各模型專用的部分。</p>
+        <ul class="flow shared" aria-label="兩類客戶端參與共同訓練，各自保留專用參數">
+          <li><strong>ANN 客戶端</strong><span>保留傳統神經網路專用參數</span></li>
+          <li class="gate"><strong>共同訓練</strong><span>共享可交換的參數</span></li>
+          <li><strong>SNN 客戶端</strong><span>保留脈衝神經網路專用參數</span></li>
+        </ul>
+        <div class="callout"><p>延伸到簡報流程：Wiki 和投影片共用同一份來源紀錄。圖的版面與講述順序可以留在簡報端。</p></div>
+        <p class="source"><a href="../wiki/papers/nguyen-2026-hnfl.md">HNFL，PDF 第 2–4 頁</a>。圖中兩側表示客戶端與共享參數的關係。</p>
+      </div>
+    </section>
+
+    <section class="slide contrast">
+      <div class="sheet">
+        <p class="phase">從五篇研究補上設計細節</p>
+        <h2>同一偵測器，兩種檢查結果</h2>
+        <p class="lead">《The Geometry of Lies》用同一個偵測器測試 Llama 的回答，分別檢查排序能力和固定門檻下的實際檢出。</p>
+        <div class="case-grid pair-values">
+          <article>
+            <p class="value">0.936</p>
+            <p class="label">AUROC。衡量分數區分兩類案例的排序表現。</p>
+          </article>
+          <article>
+            <p class="value">0<small> / 139</small></p>
+            <p class="label">使用研究的基準門檻，實際標出的欺騙案例數。</p>
+          </article>
+        </div>
+        <p class="source">兩個數字都來自 Llama 同層監督式探針的 HP-KR 測試。<a href="../wiki/papers/al-zami-2026-geometry-of-lies.md">Wiki 筆記與原文定位，§4.1</a></p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="sheet">
+        <p class="phase">檢查內容</p>
+        <h2>發現問題後，要退回哪一步？</h2>
+        <table class="assessment">
+          <thead><tr><th scope="col">發現的問題</th><th scope="col">回到哪一步</th><th scope="col">怎麼判斷已修正</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">證據不足</th><td>回 Wiki 與原文。</td><td>主張附有可核對的頁碼，並保留研究條件。</td></tr>
+            <tr><th scope="row">箭頭意思有誤</th><td>回大綱與圖稿。</td><td>能讀出每條箭頭的意思，並與原文關係一致。</td></tr>
+            <tr><th scope="row">文字或操作出錯</th><td>回 HTML 實作。</td><td>重測受影響頁面的顯示、翻頁與來源連結。</td></tr>
+          </tbody>
+        </table>
+        <div class="callout warn"><p>已驗證的例子：上一版寫「先篩查，再診斷」。查原文圖 1 後改為兩路並行，並讓兩路匯入共同判定。</p></div>
+        <p class="source"><a href="../wiki/log.md">Wiki 健檢紀錄</a> · <a href="https://arxiv.org/pdf/2611.27899#page=2">Dual-Tier 原文圖 1</a></p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="sheet">
+        <p class="phase">產生簡報</p>
+        <h2>大綱、逐頁內容、HTML 分段確認</h2>
+        <ol class="flow" aria-label="從大綱確認到公開播放的製作關卡">
+          <li class="gate"><strong>確認大綱</strong><span>各節要回答的問題及來源</span></li>
+          <li class="gate"><strong>確認逐頁內容</strong><span>每頁的要點、圖與讀法</span></li>
+          <li><strong>製作 HTML</strong><span>把圖與內容排進投影片</span></li>
+          <li class="gate"><strong>成品驗收</strong><span>尺寸、翻頁、連結與引用</span></li>
+        </ol>
+        <div class="callout"><p>大綱階段查箭頭，逐頁階段讓初學者試讀，成品階段用瀏覽器測試。錯誤就回到能修正它的步驟。</p></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="sheet">
+        <p class="phase">練習｜回到開場的 72%</p>
+        <h2>哪一筆結果符合任務？</h2>
+        <p class="lead">任務要找介入組第 12 週的完成率。假設原文第 8 頁表 2 如下。</p>
+        <table>
+          <thead><tr><th scope="col">組別</th><th scope="col">時間點</th><th scope="col">完成率</th></tr></thead>
+          <tbody>
+            <tr><td>介入組</td><td>第 4 週</td><td>72%</td></tr>
+            <tr><td>介入組</td><td>第 12 週</td><td>68%</td></tr>
+            <tr><td>對照組</td><td>第 12 週</td><td>61%</td></tr>
+          </tbody>
+        </table>
+        <details>
+          <summary>查看核對結果</summary>
+          <p>介入組第 12 週的完成率是 <strong>68%</strong>，出自假例的第 8 頁表 2。原先的 72% 屬於第 4 週。發現時間點錯配後，回到原文修正數值，並一起保留組別與時間點。</p>
+        </details>
+        <p class="source">本頁為教學假例，使用 <a href="../wiki/papers/xie-2026-metarigor.md">MetaRigor</a> 的來源綁定概念。</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="sheet">
+        <p class="phase">延伸閱讀</p>
+        <h2>五篇論文在流程中的位置</h2>
+        <table class="papers">
+          <thead><tr><th scope="col">Wiki 論文筆記</th><th scope="col">可以用來理解的問題</th></tr></thead>
+          <tbody>
+            <tr><td><a href="../wiki/papers/rafieioskouie-2026-slicr.md">SLICR</a></td><td>代理的行為目標和約束怎麼寫清楚？</td></tr>
+            <tr><td><a href="../wiki/papers/ding-2026-dual-tier-sentiment.md">Dual-Tier</a></td><td>兩項並行評估如何共同支援上線判定？</td></tr>
+            <tr><td><a href="../wiki/papers/nguyen-2026-hnfl.md">HNFL</a></td><td>不同模型共享哪些參數，各自保留哪些？</td></tr>
+            <tr><td><a href="../wiki/papers/xie-2026-metarigor.md">MetaRigor</a></td><td>如何把擷取的數字連回原文與研究條件？</td></tr>
+            <tr><td><a href="../wiki/papers/al-zami-2026-geometry-of-lies.md">The Geometry of Lies</a></td><td>排序分數與實際檢出，分別回答什麼問題？</td></tr>
+          </tbody>
+        </table>
+        <p class="source"><a href="../wiki/topics/ai-workflow-evidence.md">五篇論文綜述與各自的證據限制</a></p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="player" aria-label="投影片導覽" hidden>
+    <progress id="progress" aria-label="簡報進度"></progress>
+    <button id="previous" type="button" aria-keyshortcuts="ArrowLeft">← 上一頁</button>
+    <output id="counter" aria-live="polite"></output>
+    <button id="next" type="button" aria-keyshortcuts="ArrowRight">下一頁 →</button>
+  </nav>
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const player = document.querySelector('.player');
+    const previous = document.getElementById('previous');
+    const next = document.getElementById('next');
+    const progress = document.getElementById('progress');
+    const counter = document.getElementById('counter');
+    let current = 0;
+
+    function showSlide(index) {
+      current = Math.min(Math.max(index, 0), slides.length - 1);
+      slides.forEach((slide, position) => {
+        slide.hidden = position !== current;
+      });
+      previous.disabled = current === 0;
+      next.disabled = current === slides.length - 1;
+      counter.value = (current + 1) + ' / ' + slides.length;
+      progress.value = current + 1;
+      window.scrollTo(0, 0);
+    }
+
+    previous.addEventListener('click', () => showSlide(current - 1));
+    next.addEventListener('click', () => showSlide(current + 1));
+    document.addEventListener('keydown', event => {
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      const destinations = {
+        ArrowLeft: current - 1, ArrowRight: current + 1,
+        Home: 0, End: slides.length - 1
+      };
+      if (Object.hasOwn(destinations, event.key)) {
+        event.preventDefault();
+        showSlide(destinations[event.key]);
+      }
+    });
+
+    progress.max = slides.length;
+    showSlide(0);
+    player.hidden = false;
+  </script>
+</body>
+</html>
