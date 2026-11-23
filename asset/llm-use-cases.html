@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-Hant">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LLM 的運用方式</title>
+<style>
+  * { box-sizing: border-box }
+  body { margin: 0; background: #112e2b; color: #16332f; font: 18px/1.55 "Microsoft JhengHei", "Noto Sans TC", sans-serif }
+  .slide { min-height: calc(100dvh - 64px); padding: clamp(26px,6vw,96px); background: #f6f3e9 }
+  .slide > * { max-width: 1050px; margin-left: auto; margin-right: auto }
+  .cover { background: #163c37; color: #fff; display: grid; align-content: center }
+  .cover[hidden] { display: none }
+  .cover > * { width: min(1050px,100%) }
+  h1,h2 { line-height: 1.15; letter-spacing: -.035em; margin-top: 0; margin-bottom: .65em }
+  h1 { font-size: clamp(44px,8vw,112px) }
+  h2 { font-size: clamp(34px,5vw,70px) }
+  p,td,th { font-size: clamp(17px,2.25vw,29px) }
+  .cover p { color: #f6ce83 }
+  dl div { display: grid; grid-template-columns: 1fr 3fr; gap: 18px; padding: 16px 0; border-top: 1px solid #abb9ad }
+  dt { font-weight: 800; color: #245f54; font-size: clamp(20px,2.5vw,34px) }
+  dd { margin: 0; font-size: clamp(17px,2.25vw,29px) }
+  table { width: 100%; border-collapse: collapse; text-align: left }
+  th,td { padding: .35em .6em; border-bottom: 1px solid #abb9ad }
+  .note { font-size: clamp(14px,1.45vw,20px); color: #405b54 }
+  blockquote { border-left: 6px solid #ae6d24; padding: .25em 0 .25em 1em; font-size: clamp(23px,3.5vw,44px) }
+  nav { position: sticky; bottom: 0; min-height: 64px; display: flex; gap: 16px; align-items: center; justify-content: center; background: #112e2b; color: white }
+  button { padding: 7px 15px; font: inherit; color: white; background: transparent; border: 1px solid #9db5ad; border-radius: 4px; cursor: pointer }
+  button:disabled { opacity: .45; cursor: default }
+  a { color: inherit; text-underline-offset: .2em }
+  @media screen and (min-width: 700px) {
+    .slide { padding-block: clamp(28px,6vh,72px) }
+    h2 { font-size: clamp(34px,min(5vw,7vh),70px) }
+  }
+  @media(max-width: 550px) { dl div { grid-template-columns: 1fr; gap: 3px } th,td { padding: .35em } }
+  @page { size: A4 landscape; margin: 0 }
+  @media print { nav { display: none } .slide, .cover[hidden], .slide[hidden] { display: block; min-height: 0; height: 210mm; padding: 16mm; break-after: page; print-color-adjust: exact } .slide:last-child { break-after: auto } h1 { font-size: 60pt } h2 { font-size: 35pt } p, dd, th, td { font-size: 15pt } }
+</style>
+<main>
+  <section class="slide cover">
+    <h1>LLM 的運用方式</h1>
+    <p>兩個研究案例：搜尋體驗診斷與後設分析</p>
+  </section>
+  <section class="slide">
+    <h2>LLM 在流程中負責什麼？</h2>
+    <dl>
+      <div><dt>偵測異常</dt><dd>用搜尋遙測資料找出可能出現滿意度下降的實驗。</dd></div>
+      <div><dt>診斷原因</dt><dd>讀取搜尋結果頁的畫面與版面位置，指出使用者可能卡在哪個區塊。</dd></div>
+      <div><dt>解讀證據</dt><dd>從研究報告擷取結果，辨認比較組、研究族群、結局與時間點，供後續驗證與分析。</dd></div>
+    </dl>
+  </section>
+  <section class="slide">
+    <h2>搜尋體驗：整體篩查與局部診斷並行</h2>
+    <dl>
+      <div><dt>整體篩查</dt><dd>以微調的 Gemini XS 分析遙測特徵。在超過 50 萬筆保留資料上，作者報告 <strong>PR-AUC 提升 9.8%</strong>。</dd></div>
+      <div><dt>局部診斷</dt><dd>以 Gemini 3.0 Pro 讀取搜尋結果頁與區塊位置，估計使用者找到滿意結果所需的努力。作者報告 <strong>F1 改善超過 6.5%</strong>。</dd></div>
+    </dl>
+    <p>從使用者體驗的角度，上線須同時符合兩項條件：整頁體驗未退化，而且局部使用阻力有改善。</p>
+    <p class="note">兩個指標衡量不同任務。<a href="../wiki/papers/ding-2026-dual-tier-sentiment.md">Wiki 論文筆記</a> · <a href="https://arxiv.org/pdf/2611.27899#page=1">原文摘要</a> · <a href="https://arxiv.org/pdf/2611.27899#page=2">原文圖 1</a></p>
+  </section>
+  <section class="slide">
+    <h2>後設分析：從原文擷取到可驗證的結果</h2>
+    <dl>
+      <div><dt>LLM 解讀</dt><dd>辨認一個結果對應哪個研究、比較組、族群、結局與時間點。</dd></div>
+      <div><dt>程式核驗</dt><dd>依任務契約檢查允許的決策與資料範圍，執行計算並驗證原文定位。</dd></div>
+      <div><dt>實驗結果</dt><dd>完整資料擷取 F1 為 <strong>86.29%</strong>。七案例下游評估中，整體 F1 為 <strong>77.01%</strong>，最高比較基準為 67.23%。</dd></div>
+    </dl>
+    <p class="note"><a href="../wiki/papers/xie-2026-metarigor.md">MetaRigor Wiki 論文筆記</a> · 原文<a href="https://arxiv.org/pdf/2611.27713#page=9">表 2</a>、<a href="https://arxiv.org/pdf/2611.27713#page=25">表 20</a>。兩個 F1 分別對應分階段擷取與下游整體評估。</p>
+  </section>
+  <section class="slide">
+    <h2>如何把 LLM 放進可驗證的流程</h2>
+    <dl>
+      <div><dt>界定輸入與產出</dt><dd>先指定模型要讀什麼、要回傳哪個判斷，以及結果會交給誰或哪個程式。</dd></div>
+      <div><dt>保留查證依據</dt><dd>搜尋診斷指出結果頁區塊。文獻擷取附上原文位置及對應的研究條件。</dd></div>
+      <div><dt>分步評估</dt><dd>分別測量篩查、診斷或擷取的表現，再檢查錯誤是否影響後續決策。</dd></div>
+    </dl>
+    <p class="note">以上為依兩篇 Wiki 論文歸納的設計原則。</p>
+  </section>
+  <section class="slide">
+    <h2>應用示例：整理同篇論文的多個結果</h2>
+    <blockquote>同一份研究同時報告第 4 週和第 12 週的結果。摘要該用哪一個？</blockquote>
+    <p>先在研究規範指定時間點，讓模型擷取各結果及其出處，再由程式核對時間點。紀錄不完整時，標記待查並保留原文位置。</p>
+    <p class="note">依 MetaRigor 的結果識別與來源綁定設計改寫的示例。</p>
+  </section>
+</main>
+<nav aria-label="投影片導覽">
+  <button type="button" id="previous">上一頁</button>
+  <output id="counter" aria-live="polite"></output>
+  <button type="button" id="next">下一頁</button>
+</nav>
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  const previous = document.getElementById('previous');
+  const next = document.getElementById('next');
+  const counter = document.getElementById('counter');
+  let current = 0;
+  function show(index) {
+    current = Math.max(0, Math.min(index, slides.length - 1));
+    slides.forEach((slide, i) => { slide.hidden = i !== current; });
+    previous.disabled = current === 0;
+    next.disabled = current === slides.length - 1;
+    counter.value = `${current + 1} / ${slides.length}`;
+    window.scrollTo(0, 0);
+  }
+  previous.addEventListener('click', () => show(current - 1));
+  next.addEventListener('click', () => show(current + 1));
+  document.addEventListener('keydown', event => {
+    const targets = { ArrowLeft: current - 1, ArrowRight: current + 1, Home: 0, End: slides.length - 1 };
+    if (Object.hasOwn(targets, event.key)) {
+      event.preventDefault();
+      show(targets[event.key]);
+    }
+  });
+  show(0);
+</script>
+</html>
